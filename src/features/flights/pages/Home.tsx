@@ -1,42 +1,48 @@
+import Header from "../components/layout/Header";
+import { SearchForm } from "../components/SearchForm";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../../../components/common/Button";
-import { Field, TextInput } from "../../../components/common/Field";
-import { useState } from "react";
+import Discover from "../../discover/Discover";
 
 export default function Home() {
   const nav = useNavigate();
-  const [from, setFrom] = useState("SFO");
-  const [to, setTo] = useState("JFK");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [pax, setPax] = useState(1);
 
   return (
-    <div className="container">
-      <div className="mt-10 card">
-        <h1 className="text-2xl font-semibold mb-4">Flight Search</h1>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Field label="From">
-            <TextInput value={from} onChange={e => setFrom(e.target.value.toUpperCase())} placeholder="SFO" />
-          </Field>
-          <Field label="To">
-            <TextInput value={to} onChange={e => setTo(e.target.value.toUpperCase())} placeholder="JFK" />
-          </Field>
-          <Field label="Depart">
-            <TextInput type="date" value={date} onChange={e => setDate(e.target.value)} />
-          </Field>
-          <Field label="Passengers">
-            <TextInput type="number" min={1} value={pax} onChange={e => setPax(Number(e.target.value) || 1)} />
-          </Field>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+
+      <section className="bg-white/60 backdrop-blur supports-[backdrop-filter]:bg-white/40">
+        <div className="inner py-10 md:py-14">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900">Find your next flight—fast.</h1>
+          <p className="mt-2 text-gray-600 max-w-2xl">
+            Compare options across airlines and book with confidence. Simple search, clean results.
+          </p>
         </div>
-        <div className="mt-6">
-          <Button variant="primary" onClick={() => {
-            const qs = new URLSearchParams({ from, to, depart: date, pax: String(pax) }).toString();
-            nav(`/results?${qs}`);
-          }}>
-            Search Flights
-          </Button>
+      </section>
+
+      <main>
+        <div className="panel">
+          <div className="panel-body">
+            <SearchForm
+              onSubmit={(payload) => {
+                const qs = new URLSearchParams({
+                  from: payload.from,
+                  to: payload.to,
+                  depart: payload.depart,
+                  pax: String(payload.pax),
+                  cabin: payload.cabin,
+                  tripType: payload.tripType,
+                }).toString();
+                nav(`/results?${qs}`);
+              }}
+              multiCityEnabled={false}
+            />
+          </div>
         </div>
-      </div>
+
+        <Discover />
+
+        <div className="h-10" />
+      </main>
     </div>
   );
 }
