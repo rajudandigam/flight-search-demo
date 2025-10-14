@@ -12,35 +12,59 @@ export type SearchFormProps = {
 };
 
 export function SearchForm({ initial, showCorpPolicyBanner, multiCityEnabled = true, onSubmit }: SearchFormProps) {
-  const today = new Date(); today.setDate(today.getDate() + 7);
-  const d7 = today.toISOString().slice(0, 10);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const d7 = new Date(today); d7.setDate(d7.getDate() + 7);
 
   const [from, setFrom] = useState(initial?.from ?? "");
   const [to, setTo] = useState(initial?.to ?? "");
-  const [depart, setDepart] = useState(initial?.depart ?? d7);
+  const [depart, setDepart] = useState(initial?.depart ?? d7.toISOString().slice(0, 10));
   const [pax, setPax] = useState(initial?.pax ?? 1);
   const [cabin, setCabin] = useState(initial?.cabin ?? "ECONOMY");
   const [tripType, setTripType] = useState<TripType>(initial?.tripType ?? "ONE_WAY");
+
+  const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
+  const validate = () => {
+    const errs: string[] = [];
+    const f = from.trim().toUpperCase();
+    const t = to.trim().toUpperCase();
+    if (!f) errs.push("From is required");
+    if (!t) errs.push("To is required");
+    if (f && t && f === t) errs.push("From and To cannot match");
+    const dep = new Date(depart); dep.setHours(0, 0, 0, 0);
+    if (isNaN(dep.getTime())) errs.push("Depart date is invalid");
+    else if (dep < today) errs.push("Depart date cannot be in the past");
+    if (pax < 1) errs.push("Passengers must be at least 1");
+    return errs;
+  };
+
   useEffect(() => {
-    setErrors([]);
-    if (!from.trim()) setErrors(e => [...e, "From is required"]);
-    if (!to.trim()) setErrors(e => [...e, "To is required"]);
-    if (from.trim() && to.trim() && from.toUpperCase() === to.toUpperCase()) setErrors(e => [...e, "From and To cannot match"]);
-    if (new Date(depart) < new Date(new Date().toISOString().slice(0, 10))) setErrors(e => [...e, "Depart date cannot be in the past"]);
-    if (pax < 1) setErrors(e => [...e, "Passengers must be at least 1"]);
-  }, [from, to, depart, pax]);
+    if (!submitted) return;
+    setErrors(validate());
+  }, [from, to, depart, pax, submitted]);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (errors.length) return;
-    const payload = { from: from.toUpperCase(), to: to.toUpperCase(), depart, pax, cabin, tripType };
-    onSubmit?.(payload);
+    if (!submitted) setSubmitted(true);
+    const errs = validate();
+    setErrors(errs);
+    if (errs.length) return;
+    onSubmit?.({
+      from: from.toUpperCase(),
+      to: to.toUpperCase(),
+      depart,
+      pax,
+      cabin,
+      tripType,
+    });
   };
 
+
+  const isInvalid = submitted && errors.length > 0;
+
   return (
-    <form className="card space-y-4" onSubmit={submit} aria-label="Flight Search Form">
+    <form className="space-y-4" onSubmit={submit} aria-label="Flight Search Form">
       <h2 className="text-xl font-semibold">Flight Search</h2>
 
       {showCorpPolicyBanner && (
@@ -64,7 +88,10 @@ export function SearchForm({ initial, showCorpPolicyBanner, multiCityEnabled = t
         </Field>
         <Field label="Cabin">
           <select aria-label="Cabin" className="input" value={cabin} onChange={e => setCabin(e.target.value)}>
-            <option>ECONOMY</option><option>PREMIUM_ECONOMY</option><option>BUSINESS</option><option>FIRST</option>
+            <option>ECONOMY</option>
+            <option>PREMIUM_ECONOMY</option>
+            <option>BUSINESS</option>
+            <option>FIRST</option>
           </select>
         </Field>
       </div>
@@ -81,14 +108,17 @@ export function SearchForm({ initial, showCorpPolicyBanner, multiCityEnabled = t
         </label>
       </fieldset>
 
-      {errors.length > 0 && (
+
+      {submitted && errors.length > 0 && (
         <div role="alert" aria-live="assertive" className="rounded-xl border border-red-300 bg-red-50 p-2 text-red-800">
           <ul className="list-disc pl-5">{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>
         </div>
       )}
 
       <div>
-        <Button variant="primary" type="submit" aria-disabled={errors.length > 0} disabled={errors.length > 0}>Search Flights</Button>
+        <Button variant="primary" type="submit" aria-disabled={isInvalid} disabled={isInvalid}>
+          Search Flights
+        </Button>
       </div>
     </form>
   );

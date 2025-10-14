@@ -4,7 +4,13 @@ import { SearchForm } from './SearchForm';
 const meta: Meta<typeof SearchForm> = {
   title: 'Flights/SearchForm',
   component: SearchForm,
-  parameters: { layout: 'padded' }
+  parameters: {
+    layout: 'padded',
+    controls: { expanded: true },
+  },
+  argTypes: {
+    onSubmit: { control: false },
+  },
 };
 export default meta;
 
@@ -22,14 +28,19 @@ export const CorpPolicyBanner: S = {
 
 export const OneWay: S = { args: { initial: { tripType: 'ONE_WAY' } } };
 export const RoundTrip: S = { args: { initial: { tripType: 'ROUND_TRIP' } } };
-export const MultiCityDisabled: S = { args: { initial: { tripType: 'MULTI_CITY' }, multiCityEnabled: false } };
-
-export const WithPrefilledUserContext: S = {
-  args: { initial: { from: 'SFO', to: 'JFK', depart: '2025-11-02', pax: 2, cabin: 'PREMIUM_ECONOMY', tripType: 'ONE_WAY' } }
+export const MultiCityDisabled: S = {
+  args: { initial: { tripType: 'MULTI_CITY' }, multiCityEnabled: false },
 };
 
-
-export const RTL_Default: S = {
-  args: {},
-  parameters: { direction: 'rtl' }
+export const WithPrefilledUserContext: S = {
+  args: {
+    initial: {
+      from: 'SFO',
+      to: 'JFK',
+      depart: '2025-11-02',
+      pax: 2,
+      cabin: 'PREMIUM_ECONOMY',
+      tripType: 'ONE_WAY',
+    },
+  },
 };

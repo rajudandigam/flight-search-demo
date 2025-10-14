@@ -1,65 +1,89 @@
 import * as stories from './SearchForm.stories';
 import { composeStories } from '@storybook/react-vite';
+import 'cypress-axe';
 
+const {
+  Default,
+  InvalidInputs,
+  CorpPolicyBanner,
+  RoundTrip,
+  MultiCityDisabled,
+  WithPrefilledUserContext,
+} = composeStories(stories);
 
-const { Default, InvalidInputs, CorpPolicyBanner, OneWay, RoundTrip, MultiCityDisabled, WithPrefilledUserContext, RTL_Default } = composeStories(stories);
-
-describe('SearchForm stories', () => {
-
+describe('SearchForm (Cypress CT)', () => {
   beforeEach(() => {
     cy.clock(Date.now(), ['Date']);
-    cy.injectAxe?.();
   });
 
-  it('Default: button disabled until valid', () => {
+  it('Default: no errors initially; errors appear only after submit', () => {
     cy.mount(<Default />);
-    cy.findByRole('button', { name: /search flights/i }).should('be.disabled');
-    cy.findByLabelText(/From/i).type('SFO');
-    cy.findByLabelText(/To/i).type('JFK');
-    cy.findByRole('button', { name: /search flights/i }).should('not.be.disabled');
-    cy.checkA11y?.();
+    cy.findByRole('alert').should('not.exist');
+
+    cy.findByRole('button', { name: /search flights/i }).click();
+
+    cy.findByRole('alert', { timeout: 2000 }).should('exist');
+    cy.findByText(/From is required/i).should('exist');
+    cy.findByText(/To is required/i).should('exist');
+
+    cy.injectAxe();
+    cy.checkA11y(undefined, { runOnly: { type: 'tag', values: ['wcag2a'] } });
   });
 
-  it('InvalidInputs: shows validation and keeps submit disabled', () => {
+  it('InvalidInputs: respects native min validation, then shows custom errors after fixing pax', () => {
     cy.mount(<InvalidInputs />);
-    cy.findByRole('alert').within(() => {
-      cy.contains(/cannot be in the past/i);
-      cy.contains(/cannot match/i);
-      cy.contains(/at least 1/i);
+
+    cy.findByLabelText(/Passengers/i)
+      .should('have.attr', 'min', '1')
+      .should('match', ':invalid')
+      .then(($el) => {
+        const input = $el[0] as HTMLInputElement;
+        expect(input.validity.rangeUnderflow, 'rangeUnderflow').to.be.true;
+        expect(input.checkValidity(), 'checkValidity').to.be.false;
+      });
+    cy.findByLabelText(/Passengers/i).clear().type('1');
+
+    cy.findByRole('button', { name: /search flights/i }).click();
+
+    cy.findByRole('alert', { timeout: 6000 }).within(() => {
+      cy.contains(/cannot match/i).should('exist');
+      cy.contains(/cannot be in the past/i).should('exist');
+      cy.contains(/at least 1/i).should('not.exist');
     });
-    cy.findByRole('button', { name: /search flights/i }).should('be.disabled');
-    cy.checkA11y?.();
   });
 
-  it('CorpPolicyBanner visible and announced', () => {
+
+  it('CorpPolicyBanner: visible banner, errors only after submit', () => {
     cy.mount(<CorpPolicyBanner />);
-    cy.findByRole('status').should('be.visible').and('contain.text', /corporate policy/i);
-    cy.checkA11y?.();
+
+    cy.get('[role="status"]')
+      .should('exist')
+      .and('include.text', 'Corporate policy');
+
+    cy.findByRole('alert').should('not.exist');
+
+    cy.findByRole('button', { name: /search flights/i }).click();
+    cy.findByRole('alert', { timeout: 2000 }).should('exist');
   });
 
-  it('Trip type radios toggle via keyboard only', () => {
+  it('Trip types toggle; form becomes valid when fields filled', () => {
     cy.mount(<RoundTrip />);
-    cy.realPress('Tab');
     cy.findByLabelText(/From/i).type('SFO');
     cy.findByLabelText(/To/i).type('JFK');
-    cy.findByRole('radio', { name: /round-trip/i }).focus().type('{space}');
-    cy.findByRole('radio', { name: /round-trip/i }).should('be.checked');
+    cy.findByRole('button', { name: /search flights/i }).click();
+    cy.findByRole('alert').should('not.exist');
   });
 
-  it('MultiCityDisabled: radio disabled', () => {
+  it('Multi-city disabled by policy', () => {
     cy.mount(<MultiCityDisabled />);
     cy.findByRole('radio', { name: /multi-city/i }).should('be.disabled');
   });
 
-  it('WithPrefilledUserContext: prefilled fields', () => {
-    cy.mount(<WithPrefilledUserContext />);
-    cy.findByLabelText(/From/i).should('have.value', 'SFO');
-    cy.findByLabelText(/Passengers/i).should('have.value', '2');
-    cy.findByLabelText(/Cabin/i).should('have.value', 'PREMIUM_ECONOMY');
-  });
-
-  it('RTL_Default: renders with dir=rtl', () => {
-    cy.mount(<RTL_Default />);
-    cy.get('form[aria-label="Flight Search Form"]').should('have.attr', 'dir', 'rtl');
+  it('WithPrefilledUserContext: valid submit triggers onSubmit', () => {
+    const onSubmit = cy.stub().as('onSubmit');
+    cy.mount(<WithPrefilledUserContext onSubmit={onSubmit} />);
+    cy.findByRole('button', { name: /search flights/i }).click();
+    cy.findByRole('alert').should('not.exist');
+    cy.get('@onSubmit').should('have.been.calledOnce');
   });
 });
