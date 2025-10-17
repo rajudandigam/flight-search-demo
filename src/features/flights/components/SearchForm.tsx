@@ -75,19 +75,19 @@ export function SearchForm({ initial, showCorpPolicyBanner, multiCityEnabled = t
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Field label="From">
-          <TextInput aria-label="From" value={from} onChange={e => setFrom(e.target.value.toUpperCase())} placeholder="SFO" />
+          <TextInput data-cy="from-input" aria-label="From" value={from} onChange={e => setFrom(e.target.value.toUpperCase())} placeholder="SFO" />
         </Field>
         <Field label="To">
-          <TextInput aria-label="To" value={to} onChange={e => setTo(e.target.value.toUpperCase())} placeholder="JFK" />
+          <TextInput data-cy="to-input" aria-label="To" value={to} onChange={e => setTo(e.target.value.toUpperCase())} placeholder="JFK" />
         </Field>
         <Field label="Depart">
-          <TextInput aria-label="Depart" type="date" value={depart} onChange={e => setDepart(e.target.value)} />
+          <TextInput data-cy="depart-input" aria-label="Depart" type="date" value={depart} onChange={e => setDepart(e.target.value)} />
         </Field>
         <Field label="Passengers">
-          <TextInput aria-label="Passengers" type="number" min={1} value={pax} onChange={e => setPax(Number(e.target.value) || 1)} />
+          <TextInput data-cy="pax-input" aria-label="Passengers" type="number" min={1} value={pax} onChange={e => setPax(Number(e.target.value) || 1)} />
         </Field>
         <Field label="Cabin">
-          <select aria-label="Cabin" className="input" value={cabin} onChange={e => setCabin(e.target.value)}>
+          <select data-cy="cabin-select" aria-label="Cabin" className="input" value={cabin} onChange={e => setCabin(e.target.value)}>
             <option>ECONOMY</option>
             <option>PREMIUM_ECONOMY</option>
             <option>BUSINESS</option>
@@ -98,25 +98,25 @@ export function SearchForm({ initial, showCorpPolicyBanner, multiCityEnabled = t
 
       <fieldset className="flex gap-3" aria-label="Trip Type">
         <label className="inline-flex items-center gap-2">
-          <input type="radio" name="tt" checked={tripType === 'ONE_WAY'} onChange={() => setTripType('ONE_WAY')} /> One-way
+          <input data-cy="one-way-radio" type="radio" name="tt" checked={tripType === 'ONE_WAY'} onChange={() => setTripType('ONE_WAY')} /> One-way
         </label>
         <label className="inline-flex items-center gap-2">
-          <input type="radio" name="tt" checked={tripType === 'ROUND_TRIP'} onChange={() => setTripType('ROUND_TRIP')} /> Round-trip
+          <input data-cy="round-trip-radio" type="radio" name="tt" checked={tripType === 'ROUND_TRIP'} onChange={() => setTripType('ROUND_TRIP')} /> Round-trip
         </label>
         <label className={`inline-flex items-center gap-2 ${!multiCityEnabled ? 'opacity-50' : ''}`} title={!multiCityEnabled ? 'Disabled by org policy' : ''}>
-          <input type="radio" name="tt" disabled={!multiCityEnabled} checked={tripType === 'MULTI_CITY'} onChange={() => setTripType('MULTI_CITY')} /> Multi-city
+          <input data-cy="multi-city-radio" type="radio" name="tt" disabled={!multiCityEnabled} checked={tripType === 'MULTI_CITY'} onChange={() => setTripType('MULTI_CITY')} /> Multi-city
         </label>
       </fieldset>
 
 
       {submitted && errors.length > 0 && (
-        <div role="alert" aria-live="assertive" className="rounded-xl border border-red-300 bg-red-50 p-2 text-red-800">
+        <div data-cy="form-alert" role="alert" aria-live="assertive" className="rounded-xl border border-red-300 bg-red-50 p-2 text-red-800">
           <ul className="list-disc pl-5">{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>
         </div>
       )}
 
       <div>
-        <Button variant="primary" type="submit" aria-disabled={isInvalid} disabled={isInvalid}>
+        <Button data-cy="search-button" variant="primary" type="submit" aria-disabled={isInvalid} disabled={isInvalid}>
           Search Flights
         </Button>
       </div>

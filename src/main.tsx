@@ -3,11 +3,20 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 
-if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+declare global {
+  interface Window {
+    Cypress?: any;
+  }
+}
+
+
+
+
+if (import.meta.env.DEV && 'serviceWorker' in navigator && !window.Cypress) {
   const { worker } = await import('./mocks/browser');
   await worker.start({
     serviceWorker: {
-      url: '/mockServiceWorker.js',
+      url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
     },
     onUnhandledRequest: 'bypass',
   });
