@@ -62,7 +62,7 @@ tailwind.config.js
 - **Tailwind CSS** (utility-first styling)
 - **Storybook** (Component Story Format, CSF)
 - **Cypress 13** (Component Testing + E2E)
-- **@storybook/testing-react** (`composeStories`)
+- **@storybook/testing-react or @storybook/react-vite** (`composeStories`)
 - **@testing-library/cypress** (accessible queries like `findByRole`, `findByLabelText`)
 - **cypress-axe** (accessibility audits, opt-in per spec)
 
