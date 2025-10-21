@@ -26,6 +26,11 @@ export type Flight = {
   fareDetails?: FareDetails;
 };
 
+type Props = {
+  flight: Flight;
+  onSelect?: (flight: Flight) => void;
+};
+
 function CarrierLogo({ src, alt }: { src?: string; alt: string }) {
   if (!src) {
     return (
@@ -46,7 +51,7 @@ function CarrierLogo({ src, alt }: { src?: string; alt: string }) {
   );
 }
 
-export function FlightCard({ flight }: { flight: Flight }) {
+export function FlightCard({ flight, onSelect }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
 
   const d = hhmm(flight.depart);
@@ -114,7 +119,7 @@ export function FlightCard({ flight }: { flight: Flight }) {
           </div>
 
           <div className="text-right md:text-left">
-            <button data-cy="select-button" className="btn btn-primary w-full md:w-auto">Select</button>
+            <button data-cy="select-button" className="btn btn-primary w-full md:w-auto" onClick={() => onSelect?.(flight)}>Select</button>
           </div>
 
         </div>
